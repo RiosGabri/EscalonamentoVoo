@@ -6,3 +6,8 @@ Testes:
    -Teste com algoritmo incorreto -> ./scheduler fifo voo.txt
    -Checagem do código de saída do sistema -> echo $?
    -Teste válido -> ./scheduler rate voo.txt
+Montagem da lógica de arquivo:
+Testes:
+   -Arquivo inexistente
+   -Teste com C e D inválidos
+   -Teste válido (ainda retornado 0)
