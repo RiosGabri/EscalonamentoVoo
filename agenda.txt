@@ -1,0 +1,8 @@
+05/09
+Validação 1: Verificação da qtd de argumentos (esperado: 3)
+Validação 2: Verificação do nome do algoritmo
+Testes: 
+   -Teste sem argumentos -> ./scheduler
+   -Teste com algoritmo incorreto -> ./scheduler fifo voo.txt
+   -Checagem do código de saída do sistema -> echo $?
+   -Teste válido -> ./scheduler rate voo.txt
