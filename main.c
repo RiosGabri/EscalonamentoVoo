@@ -29,6 +29,18 @@ int selecionar_tarefa_rate(Tarefa tarefas[], int num_tarefas) {
     return melhor_idx;
 }
 
+int selecionar_tarefa_edf(Tarefa tarefas[], int num_tarefas) {
+    int melhor_idx = -1;
+    for (int i = 0; i < num_tarefas; i++) {
+        if (tarefas[i].tempo_restante > 0) {
+            if (melhor_idx == -1 || tarefas[i].prazo_absoluto < tarefas[melhor_idx].prazo_absoluto) {
+                melhor_idx = i;
+            }
+        }
+    }
+    return melhor_idx;
+}
+
 int main(int argc, char *argv[]) {
     int tempo_total;
     Tarefa tarefas[MAX_TAREFAS];
@@ -90,7 +102,12 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Erro ao criar arquivo de saida\n");
         return EXIT_FAILURE;
     }
-    fprintf(saida, "EXECUTION BY RATE\n");
+    int eh_edf = (strcmp(argv[1], "edf") == 0);
+    if (eh_edf) {
+        fprintf(saida, "EXECUTION BY EDF\n");
+    } else {
+        fprintf(saida, "EXECUTION BY RATE\n");
+    }
 
     int tarefa_atual = -2;
     int duracao_bloco = 0;
@@ -108,7 +125,12 @@ int main(int argc, char *argv[]) {
                 tarefas[i].prazo_absoluto = t + tarefas[i].d;
             }
         }
-        int selecionada = selecionar_tarefa_rate(tarefas, num_tarefas);
+        int selecionada;
+        if (eh_edf) {
+            selecionada = selecionar_tarefa_edf(tarefas, num_tarefas);
+        } else {
+            selecionada = selecionar_tarefa_rate(tarefas, num_tarefas);
+        }
         if (selecionada != tarefa_atual) {
             if (duracao_bloco > 0) {
                 if (tarefa_atual == -1) {
