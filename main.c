@@ -68,7 +68,21 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    while (fscanf(arq, "%63s %d %d %d", tarefas[num_tarefas].nome, &tarefas[num_tarefas].p, &tarefas[num_tarefas].d, &tarefas[num_tarefas].c) == 4) {
+    for (;;) {
+        if (num_tarefas >= MAX_TAREFAS) {
+            fprintf(stderr, "Numero de tarefas excede o limite suportado\n");
+            fclose(arq);
+            return EXIT_FAILURE;
+        }
+        int lidos = fscanf(arq, "%63s %d %d %d", tarefas[num_tarefas].nome, &tarefas[num_tarefas].p, &tarefas[num_tarefas].d, &tarefas[num_tarefas].c);
+        if (lidos == EOF) {
+            break;
+        }
+        if (lidos != 4) {
+            fprintf(stderr, "Campos incompletos ou nao numericos\n");
+            fclose(arq);
+            return EXIT_FAILURE;
+        }
         if (tarefas[num_tarefas].p <= 0 || tarefas[num_tarefas].d <= 0 || tarefas[num_tarefas].c <= 0) {
             fprintf(stderr, "Valores devem ser positivos\n");
             fclose(arq);
@@ -111,12 +125,17 @@ int main(int argc, char *argv[]) {
 
     int tarefa_atual = -2;
     int duracao_bloco = 0;
+    int perdeu_agora[MAX_TAREFAS];
 
     for (int t = 0; t < tempo_total; t++) {
+        for (int i = 0; i < num_tarefas; i++) {
+            perdeu_agora[i] = 0;
+        }
         for (int i = 0; i < num_tarefas; i++) {
             if (t == tarefas[i].prazo_absoluto && tarefas[i].tempo_restante > 0) {
                 tarefas[i].prazos_perdidos++;
                 tarefas[i].tempo_restante = 0;
+                perdeu_agora[i] = 1;
             }
         }
         for (int i = 0; i < num_tarefas; i++) {
@@ -136,7 +155,15 @@ int main(int argc, char *argv[]) {
                 if (tarefa_atual == -1) {
                     fprintf(saida, "idle for %d units\n", duracao_bloco);
                 } else {
-                    fprintf(saida, "[%s] for %d units\n", tarefas[tarefa_atual].nome, duracao_bloco);
+                    char letra;
+                    if (perdeu_agora[tarefa_atual]) {
+                        letra = 'L';
+                    } else if (tarefas[tarefa_atual].tempo_restante == 0) {
+                        letra = 'F';
+                    } else {
+                        letra = 'H';
+                    }
+                    fprintf(saida, "[%s] for %d units - %c\n", tarefas[tarefa_atual].nome, duracao_bloco, letra);
                 }
             }
             tarefa_atual = selecionada;
@@ -151,11 +178,30 @@ int main(int argc, char *argv[]) {
             }
         }
     }
+    int perdeu_no_limite = 0;
+    for (int i = 0; i < num_tarefas; i++) {
+        if (tarefas[i].prazo_absoluto == tempo_total && tarefas[i].tempo_restante > 0) {
+            tarefas[i].prazos_perdidos++;
+            tarefas[i].tempo_restante = 0;
+            if (i == tarefa_atual) {
+                perdeu_no_limite = 1;
+            }
+        }
+    }
+
     if (duracao_bloco > 0) {
         if (tarefa_atual == -1) {
             fprintf(saida, "idle for %d units\n", duracao_bloco);
         } else {
-            fprintf(saida, "[%s] for %d units\n", tarefas[tarefa_atual].nome, duracao_bloco);
+            char letra;
+            if (perdeu_no_limite) {
+                letra = 'L';
+            } else if (tarefas[tarefa_atual].tempo_restante == 0) {
+                letra = 'F';
+            } else {
+                letra = 'H';
+            }
+            fprintf(saida, "[%s] for %d units - %c\n", tarefas[tarefa_atual].nome, duracao_bloco, letra);
         }
     }
     for (int i = 0; i < num_tarefas; i++) {
