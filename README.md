@@ -2,6 +2,10 @@
 
 Implementação 3 — Infraestrutura de Software
 
+## Sistema operacional
+
+O projeto foi desenvolvido e testado em **Linux Mint**, executado em uma máquina virtual pelo VirtualBox.
+
 ## Arquivos
 
 - `main.c` — implementação completa: parsing e validação do arquivo de
