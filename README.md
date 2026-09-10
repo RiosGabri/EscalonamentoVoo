@@ -2,6 +2,15 @@
 
 Implementação 3 — Infraestrutura de Software
 
+## Sobre o projeto
+
+Este projeto implementa, em C, um escalonador de tarefas periódicas de voo.
+O programa recebe por linha de comando o algoritmo de escalonamento (`rate` ou `edf`) e um arquivo contendo as tarefas a serem simuladas.
+A aplicação valida os argumentos e os dados do arquivo de entrada e, em seguida, simula a execução das tarefas ao longo do tempo.
+São implementadas duas estratégias de prioridade: **Rate-Monotonic**, que prioriza tarefas pelo menor período,
+ e **Earliest Deadline First (EDF)**, que prioriza a tarefa com o deadline absoluto mais próximo.
+Ao final da simulação, o programa registra a sequência de execução, períodos de ociosidade, deadlines perdidos, execuções completas e tarefas canceladas.
+
 ## Sistema operacional
 
 O projeto foi desenvolvido e testado em **Linux Mint**, executado em uma máquina virtual pelo VirtualBox.
@@ -14,7 +23,10 @@ O projeto foi desenvolvido e testado em **Linux Mint**, executado em uma máquin
   de execução e das contagens finais (deadlines perdidos, execuções
   completas, tarefas canceladas ao fim da simulação).
 - `Makefile` — compila o executável `scheduler` e limpa artefatos gerados
-  (`make clean`). 
+  (`make clean`).
+- `.gitignore` — define arquivos e diretórios que não devem ser versionados pelo Git, evitando o envio de artefatos gerados durante a compilação ou execução.
+- `agenda.txt` — arquivo utilizado como recurso de trabalho durante o desenvolvimento do projeto.
+- `README.md` — documentação do projeto, com descrição, instruções de compilação, execução e testes. 
 
 ## Compilação
 
@@ -35,16 +47,65 @@ e não imprime nada em stdout durante a execução normal.
 Erros de entrada são reportados em stderr com código de
 saída diferente de zero, e nenhum arquivo de saída é criado nesse caso.
 
-### Formato do arquivo de entrada
+## Entrada
 
+O programa recebe dois argumentos pela linha de comando:
+
+```bash
+./scheduler <algoritmo> <arquivo_de_entrada>
 ```
+
+O primeiro argumento define a estratégia utilizada (`rate` ou `edf`). O segundo indica o arquivo que contém os dados da simulação.
+
+O arquivo de entrada segue o formato:
+
+```text
 [TEMPO TOTAL]
 [NOME] [PERÍODO] [DEADLINE] [BURST]
 ...
 ```
 
-Todas as tarefas chegam pela primeira vez no instante 0, valores inteiros
-positivos, e vale sempre `C ≤ D ≤ P`.
+A primeira linha informa o tempo total da simulação. Cada linha seguinte representa uma tarefa, contendo seu nome, período (`P`), deadline (`D`) e custo de execução (`C`). Todas as tarefas chegam pela primeira vez no instante 0, os valores devem ser inteiros positivos e deve ser respeitada a relação `C <= D <= P`.
+
+Exemplo:
+
+```text
+50
+ATT 20 12 8
+NAV 50 30 15
+```
+
+## Saída
+
+Após uma execução válida, o programa gera um arquivo de saída específico para o algoritmo utilizado:
+
+```text
+rate_grp.out
+edf_grp.out
+```
+
+O arquivo registra a execução da simulação, indicando os períodos em que cada tarefa utiliza a CPU e os momentos em que o processador permanece ocioso. Ao final, são apresentadas as tarefas que perderam deadlines, as execuções concluídas e as tarefas classificadas como `KILLED`.
+
+Em uma execução normal, o resultado da simulação não é impresso no `stdout`. Quando ocorre um erro de entrada, a mensagem é enviada para `stderr` e o programa termina com código diferente de zero, sem gerar o arquivo de saída.
+
+## Testes
+
+Os testes utilizam o arquivo de exemplo e as entradas inválidas presentes na pasta `Testes`.
+
+Exemplo:
+
+```bash
+./scheduler rate voo.txt
+./scheduler edf voo.txt
+```
+
+Para testar uma entrada inválida:
+
+```bash
+./scheduler rate Testes/<arquivo_de_teste>.txt
+```
+
+Foram testados argumentos inválidos, algoritmo inválido, arquivo inexistente, valores inválidos de `P`, `D` e `C`, campos incompletos e excesso de tarefas.
 
 ## O que foi testado
 
